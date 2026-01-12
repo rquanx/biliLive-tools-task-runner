@@ -6,7 +6,7 @@
 - 安装依赖：`pnpm install`
 - 开发运行：`pnpm dev`（读取 `.env` 中的端口与鉴权配置）
 - 生成密钥：`pnpm gen:auth`（如果没有 `.env` 会创建并写入新的 `AUTH_SECRET`；已存在则仅替换密钥）
-- 构建与启动：`pnpm build && pnpm start`，再发送请求：
+- 构建与启动：`pnpm build && pnpm start`（Vite 会产出未压缩的单文件 `dist/server.js`），再发送请求：
   - `curl -i -H "Authorization: <AUTH_SECRET>" http://localhost:15225/test`
 
 ## 环境变量
