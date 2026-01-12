@@ -1,11 +1,22 @@
 import { defineConfig } from 'vite'
 import path from 'path'
 import { builtinModules } from 'module'
+import { viteStaticCopy } from 'vite-plugin-static-copy'
 
 // Keep Node built-ins external but bundle all project dependencies.
 const nodeExternals = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)]
 
 export default defineConfig({
+  plugins: [
+    viteStaticCopy({
+      targets: [
+        {
+          src: '.env',
+          dest: '',
+        },
+      ],
+    }),
+  ],
   build: {
     target: 'node24',
     outDir: 'dist',
