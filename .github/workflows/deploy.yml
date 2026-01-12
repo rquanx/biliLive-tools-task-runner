@@ -1,0 +1,71 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+env:
+  TARGET_DIR: ${{ vars.TARGET_DIR }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.2
+          run_install: false
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      # 步骤 1: 在服务器上创建目标目录并设置权限
+      - name: Create directory and set permissions
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo mkdir -p ${{ vars.TARGET_DIR }}
+            sudo chown -R ${{ secrets.SSH_USERNAME }}:${{ secrets.SSH_USERNAME }} ${{ vars.TARGET_DIR }}
+
+      # 步骤 2: 复制部署所需的文件到服务器
+      - name: Copy files to server
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: 'dist'
+          target: '${{ vars.TARGET_DIR }}'
+
+      # 步骤 3: 在服务器上运行服务
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            # 设置环境变量
+            TARGET_DIR="${{ vars.TARGET_DIR }}"
+
+            # 进入目标目录
+            cd $TARGET_DIR
+
+            # 运行程序
+            pm2 start dist/server.js --name biliLive-tools-task-runner || pm2 restart biliLive-tools-task-runner
+            pm2 save
