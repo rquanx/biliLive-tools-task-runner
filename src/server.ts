@@ -11,7 +11,7 @@ const host = process.env.HOST || '0.0.0.0'
 const authHeader = process.env.AUTH_HEADER || 'Authorization'
 const authSecret = process.env.AUTH_SECRET || ''
 
-app.addHook('onRequest', async (request, reply) => {
+app.addHook('preHandler', async (request, reply) => {
   const headerValue = request.headers[authHeader.toLowerCase()] || request.headers[authHeader]
   const authorized = typeof headerValue === 'string' && headerValue === authSecret
   const logEntry = {
