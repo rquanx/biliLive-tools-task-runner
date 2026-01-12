@@ -7,6 +7,7 @@ dotenv.config();
 
 const app = Fastify({ logger: false });
 const port = Number(process.env.PORT || 15225);
+const host = process.env.HOST || '0.0.0.0';
 const authHeader = process.env.AUTH_HEADER || 'Authorization';
 const authSecret = process.env.AUTH_SECRET || '';
 
@@ -30,8 +31,8 @@ app.addHook('onRequest', async (request, reply) => {
 
 app.register(testRoute);
 
-app.listen({ port }).then(() => {
-  console.log(`Server listening on ${port}`);
+app.listen({ port, host }).then(() => {
+  console.log(`Server listening on ${host}:${port}`);
 }).catch((err) => {
   console.error(err);
   process.exit(1);
