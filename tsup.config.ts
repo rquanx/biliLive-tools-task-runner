@@ -1,17 +1,23 @@
 import { defineConfig } from 'tsup'
-import { builtinModules } from 'module'
+import pkg from './package.json'
 
-const nodeExternals = [...builtinModules, ...builtinModules.map((m) => `node:${m}`)]
+// Get all dependencies from package.json
+const allDependencies = Object.keys(pkg.dependencies || {}).concat(Object.keys(pkg.devDependencies || {}))
 
 export default defineConfig({
   entry: ['src/server.ts'],
+
   format: ['cjs'],
+  platform: 'node',
   target: 'node24',
-  platform: 'node', // ⭐ 关键
+
   outDir: 'dist',
-  sourcemap: false,
-  minify: false,
   clean: true,
-  splitting: false, // 单文件
-  external: [...nodeExternals, 'pino', 'fastify'],
+
+  bundle: true, // ⭐ 打包所有依赖
+  external: [], // ⭐ 不排除任何三方包
+  splitting: false, // ⭐ 单文件
+  minify: false,
+  sourcemap: false,
+  noExternal: allDependencies,
 })
