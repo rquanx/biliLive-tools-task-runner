@@ -15,6 +15,14 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Replace SERVER_CHAN_SEND_KEY placeholder
+        run: |
+          if [ -z "${{ secrets.SERVER_CHAN_SEND_KEY }}" ]; then
+            echo "SERVER_CHAN_SEND_KEY is required." >&2
+            exit 1
+          fi
+          sed -i "s|<SERVER_CHAN_SEND_KEY>|${{ secrets.SERVER_CHAN_SEND_KEY }}|g" .env
+
       - uses: pnpm/action-setup@v4
         with:
           version: 10.18.2
