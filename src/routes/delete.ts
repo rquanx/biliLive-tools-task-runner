@@ -95,7 +95,7 @@ export async function deleteRoute(app: FastifyInstance) {
       }
 
       try {
-        // await fs.unlink(filePath)
+        await fs.unlink(filePath)
         logger.info(`${fileName} 删除成功`)
       } catch (err) {
         logger.error({ err, filePath }, `${fileName} 删除失败（${(err as Error).message}）`)
