@@ -17,7 +17,6 @@ app.addHook('preHandler', async (request, reply) => {
   const headerValue = request.headers[authHeader.toLowerCase()] || request.headers[authHeader]
   const authorized = typeof headerValue === 'string' && headerValue === authSecret
   const logEntry = {
-    timestamp: new Date().toISOString(),
     method: request.method,
     url: request.url,
     headers: request.headers,

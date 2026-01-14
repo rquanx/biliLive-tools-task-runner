@@ -1,11 +1,19 @@
-// logger/index.ts
-import pino from 'pino'
-import { createDailyDestination } from './daily-destination'
+import { createLogger, format, transports } from 'winston'
+import 'winston-daily-rotate-file'
 
-export const logger = pino(
-  {
-    level: 'info',
-    timestamp: pino.stdTimeFunctions.isoTime,
-  },
-  createDailyDestination()
-)
+export const logger = createLogger({
+  level: 'info',
+  format: format.combine(
+    format.timestamp(),
+    format.printf(({ level, message, timestamp }) => `${timestamp} ${level}: ${typeof message === 'string' ? message : JSON.stringify(message)}`)
+  ),
+  transports: [
+    // 滚动文件
+    new transports.DailyRotateFile({
+      dirname: 'logs',
+      filename: 'app-%DATE%.log',
+      datePattern: 'YYYY-MM-DD',
+      maxFiles: '14d',
+    }),
+  ],
+})
