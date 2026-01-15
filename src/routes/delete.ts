@@ -49,7 +49,7 @@ export async function deleteRoute(app: FastifyInstance) {
 
     const parsed = parseTitle(body.title)
     if (!parsed) {
-      logger.warn({ title: body.title }, '无法解析 title，跳过处理')
+      logger.warn('无法解析 title，跳过处理')
       return reply.code(200).send({ ok: true, skipped: 'bad-title' })
     }
 
@@ -57,18 +57,18 @@ export async function deleteRoute(app: FastifyInstance) {
 
     if (!isSuccessState(state)) {
       pauseDelete()
-      logger.warn(`${body.title}任务失败,暂停删除`)
+      logger.warn(`${fileName} ${taskType} 失败,暂停删除`)
       await sendServerChan('录制任务失败')
       return reply.code(200).send({ ok: true, paused: true })
     }
 
     if (taskType !== '同步任务') {
-      logger.info({ fileName }, '成功但同步任务文件，忽略')
+      logger.info(`文件 ${fileName}，${taskType} 非同步任务，忽略`)
       return reply.code(200).send({ ok: true, skipped: 'not-sync-task' })
     }
 
     if (path.extname(fileName).toLowerCase() !== '.mp4') {
-      logger.info({ fileName }, '同步任务文件非 mp4，忽略')
+      logger.info(`${taskType}，${fileName} 非 mp4，忽略`)
       return reply.code(200).send({ ok: true, skipped: 'non-mp4' })
     }
 
@@ -76,12 +76,12 @@ export async function deleteRoute(app: FastifyInstance) {
     try {
       matches = await findMatchingFile(body.dir, fileName)
     } catch (err) {
-      logger.error({ err, dir: body.dir }, '遍历目录失败')
+      logger.error(`遍历目录 ${body.dir} 失败`)
       return reply.code(500).send({ ok: false, error: 'scan-failed' })
     }
 
     if (matches.length === 0) {
-      logger.warn({ fileName, dir: body.dir }, '未找到同名文件')
+      logger.warn(`未找到 ${body.dir} ${fileName} 同名文件`)
       return reply.code(200).send({ ok: true, deleted: false, reason: 'not-found' })
     }
 
@@ -90,15 +90,15 @@ export async function deleteRoute(app: FastifyInstance) {
     for (const filePath of matches) {
       const locked = await isFileLocked(filePath)
       if (locked) {
-        logger.warn(`${fileName} 删除失败（文件被占用）`)
+        logger.warn(`${filePath} 删除失败（文件被占用）`)
         return reply.code(200).send({ ok: true, deleted: false, reason: 'locked' })
       }
 
       try {
         await fs.unlink(filePath)
-        logger.info(`${fileName} 删除成功`)
+        logger.info(`${filePath} 删除成功`)
       } catch (err) {
-        logger.error({ err, filePath }, `${fileName} 删除失败（${(err as Error).message}）`)
+        logger.error(`${filePath} 删除失败，（${(err as Error).message}）`)
         return reply.code(200).send({ ok: false, error: 'delete-failed' })
       }
     }
